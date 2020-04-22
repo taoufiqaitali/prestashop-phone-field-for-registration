@@ -3,17 +3,19 @@
 *  @author Taoufiq Ait Ali
 */
 
-if (!defined('_PS_VERSION_')) {
+if (!defined('_CAN_LOAD_FILES_')) {
     exit;
 }
-
+use PrestaShop\PrestaShop\Core\Grid\Column\Type\DataColumn;
+use PrestaShop\PrestaShop\Core\Grid\Filter\Filter;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 class Regphonefield extends Module
 {
     public function __construct()
     {
         $this->name          = 'regphonefield';
         $this->tab           = 'front_office_features';
-        $this->version       = '1.0.0';
+        $this->version       = '1.1.0';
         $this->author        = 'Taoufiq Ait Ali';
         $this->need_instance = 0;
         $this->bootstrap     = true;
@@ -31,6 +33,8 @@ class Regphonefield extends Module
             || !$this->registerHook('additionalCustomerFormFields')
             || !$this->registerHook('actionCustomerAccountAdd')
             || !$this->registerHook('actionAdminCustomersListingFieldsModifier')
+            || !$this->registerHook('actionCustomerGridDefinitionModifier')
+            || !$this->registerHook('actionCustomerGridQueryBuilderModifier')
         ) {
              $result = false;
         }
@@ -77,4 +81,63 @@ class Regphonefield extends Module
             'align' => 'center',
         );
     }
+public function hookActionCustomerGridDefinitionModifier(array $params)
+{
+    /** @var GridDefinitionInterface $definition */
+    $definition = $params['definition'];
+
+    $definition
+        ->getColumns()
+        ->addAfter(
+            'optin',
+            (new DataColumn('phone'))
+                ->setName($this->l('telephone'))
+                ->setOptions([
+                    'field' => 'phone',
+                ])
+        )
+    ;
+
+    // For search filter
+    $definition->getFilters()->add(
+        (new Filter('phone', TextType::class))
+        ->setAssociatedColumn('phone')
+    );
+}
+
+	public function hookActionCustomerGridQueryBuilderModifier(array $params)
+    {
+        /** @var QueryBuilder $searchQueryBuilder */
+        $searchQueryBuilder = $params['search_query_builder'];
+
+        /** @var CustomerFilters $searchCriteria */
+        $searchCriteria = $params['search_criteria'];
+
+        $searchQueryBuilder->addSelect(
+            'IF(wcm.`phone` IS NULL,0,wcm.`phone`) AS `phone`'
+        );
+
+        $searchQueryBuilder->leftJoin(
+            'c',
+            '`' . pSQL(DB_PREFIX) . 'customer`',
+            'wcm',
+            'wcm.`id_customer` = c.`id_customer`'
+        );
+
+        if ('phone' === $searchCriteria->getOrderBy()) {
+            $searchQueryBuilder->orderBy('wcm.`phone`', $searchCriteria->getOrderWay());
+        }
+
+        foreach ($searchCriteria->getFilters() as $filterName => $filterValue) {
+            if ('phone' === $filterName) {
+                $searchQueryBuilder->andWhere('wcm.`phone` = :phone');
+                $searchQueryBuilder->setParameter('phone', $filterValue);
+
+                if (!$filterValue) {
+                    $searchQueryBuilder->orWhere('wcm.`phone` IS NULL');
+                }
+            }
+        }
+    }
+
 }

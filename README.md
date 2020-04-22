@@ -18,3 +18,6 @@ this module allow to add phone field in registration form, you can use same modu
 2. search "phone" and replace with your field name
 3. Follow installation steps
 
+##changeLog
+1.0.0 initial release
+1.1.0 upgrade to work with 1.7.6+
