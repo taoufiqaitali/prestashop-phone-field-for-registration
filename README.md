@@ -20,4 +20,6 @@ this module allow to add phone field in registration form, you can use same modu
 
 ##changeLog
 1.0.0 initial release
+
 1.1.0 upgrade to work with 1.7.6+
+
