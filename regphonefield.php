@@ -119,7 +119,7 @@ public function hookActionCustomerGridDefinitionModifier(array $params)
 
         $searchQueryBuilder->leftJoin(
             'c',
-            '`' . pSQL(DB_PREFIX) . 'customer`',
+            '`' . pSQL(_DB_PREFIX_) . 'customer`',
             'wcm',
             'wcm.`id_customer` = c.`id_customer`'
         );
