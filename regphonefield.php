@@ -64,7 +64,7 @@ class Regphonefield extends Module
         $formField->setName('phone');
         $formField->setType('text');
         $formField->setLabel($this->l('Phone'));
-        $formField->setRequired(true);
+        $formField->setRequired(false);
         return array($formField);
     }
     
